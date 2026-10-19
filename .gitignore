@@ -1,0 +1,9 @@
+data/
+outputs/
+mlruns/
+mlartifacts/
+mlflow.db
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+*.pkl
