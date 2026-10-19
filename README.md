@@ -39,4 +39,16 @@ src/
 - Solo el campeón se registra en MLflow (alias `champion`, umbral como tag).
 
 ## Resultados
-_(completar con la tabla comparativa y el campeón)_
+| Modelo | AUC val | Gini val | KS val | F1 val (umbral óptimo) | Gap AUC train-val |
+|---|---|---|---|---|---|
+| xgboost_tuned | 0.796 | 0.592 | 0.507 | 0.501 | 0.032 |
+| xgboost | 0.794 | 0.588 | 0.504 | 0.502 | 0.041 |
+| random_forest_tuned | 0.793 | 0.586 | 0.501 | 0.499 | 0.022 |
+| random_forest | 0.792 | 0.584 | 0.500 | 0.498 | 0.018 |
+| logit | 0.784 | 0.568 | 0.474 | 0.477 | 0.010 |
+
+**Campeón:** `xgboost_tuned`, umbral óptimo 0.66 (maximiza F1 en validation).
+
+**Test:** AUC 0.814 | Gini 0.628 | KS 0.525 | Precision 47.6 % | Recall 57.6 % | F1 0.522
+
+Con el umbral óptimo, la precisión (47.6 %) es 4.2 veces la tasa base (11.27 %). Frente al umbral 0.5, se evitan 270 llamadas sin éxito a cambio de 46 suscriptores menos detectados.
