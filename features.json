@@ -1,0 +1,32 @@
+{
+  "arboles": [
+    "nr.employed",
+    "month",
+    "contact",
+    "pdays",
+    "default",
+    "poutcome",
+    "cons.conf.idx",
+    "euribor3m",
+    "job",
+    "education",
+    "emp.var.rate"
+  ],
+  "logit": [
+    "nr.employed",
+    "cons.conf.idx",
+    "pdays",
+    "contactado_antes",
+    "cons.price.idx",
+    "previous",
+    "age",
+    "campaign",
+    "poutcome",
+    "month",
+    "contact",
+    "job",
+    "default",
+    "education",
+    "marital"
+  ]
+}
