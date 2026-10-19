@@ -7,3 +7,4 @@ statsmodels
 mlflow
 matplotlib
 seaborn
+ipykernel
