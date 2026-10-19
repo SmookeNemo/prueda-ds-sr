@@ -20,8 +20,14 @@ class IQRCapper(BaseEstimator, TransformerMixin):
         q1 = X_df.quantile(0.25)
         q3 = X_df.quantile(0.75)
         iqr = q3 - q1
-        self.lower_ = (q1 - self.factor * iqr).to_numpy()
-        self.upper_ = (q3 + self.factor * iqr).to_numpy()
+        lower = (q1 - self.factor * iqr).to_numpy(dtype=float, copy=True)
+        upper = (q3 + self.factor * iqr).to_numpy(dtype=float, copy=True)
+        # IQR = 0 (variables con muchos ceros o un valor dominante, p. ej. pdays=999):
+        # el capping las volvería constantes, así que esas columnas no se recortan.
+        sin_rango = (iqr == 0).to_numpy(copy=True)
+        lower[sin_rango], upper[sin_rango] = -np.inf, np.inf
+        self.cols_sin_capping_ = list(X_df.columns[sin_rango])
+        self.lower_, self.upper_ = lower, upper
         if isinstance(X, pd.DataFrame):
             self.feature_names_in_ = np.asarray(X.columns, dtype=object)
         self.n_features_in_ = X_df.shape[1]
@@ -50,5 +56,6 @@ def resumen_atipicos(df: pd.DataFrame, num_cols: list, factor: float = 1.5) -> p
         lo, hi = q1 - factor * iqr, q3 + factor * iqr
         n_bajo, n_alto = (s < lo).sum(), (s > hi).sum()
         filas.append({"variable": c, "lim_inf": lo, "lim_sup": hi, "n_bajo": n_bajo,
-                      "n_alto": n_alto, "pct_atipicos": round(100 * (n_bajo + n_alto) / max(len(s), 1), 2)})
+                      "n_alto": n_alto, "pct_atipicos": round(100 * (n_bajo + n_alto) / max(len(s), 1), 2),
+                      "nota": "IQR=0: no se aplica capping" if iqr == 0 else ""})
     return pd.DataFrame(filas).sort_values("pct_atipicos", ascending=False).reset_index(drop=True)

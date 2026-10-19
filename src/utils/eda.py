@@ -27,8 +27,9 @@ def distribucion_target(y: pd.Series) -> pd.DataFrame:
     return tabla
 
 
-def tipos_variables(df: pd.DataFrame, target: str, max_unicos_cat: int = 15, excluir=None):
-    """Separa columnas numéricas y categóricas (numéricas con pocos únicos se tratan como categóricas)."""
+def tipos_variables(df: pd.DataFrame, target: str, max_unicos_cat: int = 0, excluir=None):
+    """Separa columnas numéricas y categóricas según el tipo de dato.
+    max_unicos_cat > 0: las numéricas con <= ese número de valores únicos se tratan como categóricas."""
     excluir = set(excluir or []) | {target}
     num_cols, cat_cols = [], []
     for c in df.columns:
