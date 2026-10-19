@@ -12,5 +12,5 @@ from .metrics import (metricas_completas, ks_statistic, evaluar_modelo, calcular
 from .modeling import (split_train_val_test, construir_preprocesador, construir_pipeline, modelos_base,
                        entrenar_y_evaluar, tabla_comparativa, elegir_campeon, espacios_busqueda,
                        tunear_modelo)
-from .mlflow_utils import (configurar_mlflow, loguear_run, registrar_campeon, cargar_campeon,
-                           predecir_con_campeon)
+from .mlflow_utils import (ALIAS, configurar_mlflow, loguear_run, registrar_campeon, cargar_campeon,
+                           predecir_con_campeon, listar_runs, registrar_desde_run)

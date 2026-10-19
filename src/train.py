@@ -16,6 +16,7 @@ NOMBRE_MODELO = "modelo_clasificacion"
 RANDOM_STATE = 42
 TUNEAR_TOP = 2                     # cuántos modelos del challenge se tunean
 N_ITER_TUNEO = 10
+GUARDAR_MODELOS_CHALLENGE = True   # guarda el modelo en cada run (permite registrarlo después)
 
 
 def main(df: pd.DataFrame = None):
@@ -72,7 +73,8 @@ def main(df: pd.DataFrame = None):
         figs = {"roc_val": graficar_roc({nombre: (y_val, p_val)}),
                 "umbral_val": graficar_umbral(y_val, p_val, r["umbral"], titulo=nombre),
                 "cm_val_opt": graficar_matriz_confusion(y_val, p_val, r["umbral"])}
-        loguear_run(r, figs, etiqueta="challenge")
+        loguear_run(r, figs, etiqueta="challenge",
+                    X_ejemplo=X_train if GUARDAR_MODELOS_CHALLENGE else None)
         resultados[nombre] = r
 
     tabla = tabla_comparativa(resultados)
@@ -89,7 +91,8 @@ def main(df: pd.DataFrame = None):
         r = entrenar_y_evaluar(f"{nombre}_tuned", mejor_pipe, data, w_train)
         r["features"] = feats
         loguear_run(r, etiqueta="tuneo", params_extra={k.replace("model__", "best_"): v
-                                                       for k, v in mejores_params.items()})
+                                                       for k, v in mejores_params.items()},
+                    X_ejemplo=X_train if GUARDAR_MODELOS_CHALLENGE else None)
         resultados[f"{nombre}_tuned"] = r
 
     tabla = tabla_comparativa(resultados)
@@ -97,6 +100,7 @@ def main(df: pd.DataFrame = None):
     tabla.to_csv("tabla_comparativa.csv", index=False)
 
     # ---------------------------------------------------- 6. Campeón: test se mira aquí
+    # Para registrar otro modelo después: python -m src.registrar --modelo <nombre>
     campeon = elegir_campeon(tabla, metrica="auc_val", max_gap=0.05)
     r = resultados[campeon]
     print(f"\nCAMPEÓN: {campeon} | umbral={r['umbral']} | {r['diagnostico']}")
