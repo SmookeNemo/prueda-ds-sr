@@ -18,7 +18,7 @@ TUNEAR_TOP = 2                     # cuántos modelos del challenge se tunean
 N_ITER_TUNEO = 10
 # Atípicos (IQR 1.5). Cada variable numérica cae en uno de tres grupos:
 ATIPICOS_ELIMINAR = []             # elimina las FILAS de train con atípicos en estas variables
-ATIPICOS_CAPPING = None            # None = todas las demás numéricas | [] = ninguna | lista = solo esas
+ATIPICOS_CAPPING = ["age", "campaign"]            # None = todas las demás numéricas | [] = ninguna | lista = solo esas
                                    # las numéricas que no estén en ninguna lista quedan sin tratamiento
 GUARDAR_MODELOS_CHALLENGE = True   # guarda el modelo en cada run (permite registrarlo después)
 
