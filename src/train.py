@@ -16,6 +16,10 @@ NOMBRE_MODELO = "modelo_clasificacion"
 RANDOM_STATE = 42
 TUNEAR_TOP = 2                     # cuántos modelos del challenge se tunean
 N_ITER_TUNEO = 10
+# Atípicos (IQR 1.5). Cada variable numérica cae en uno de tres grupos:
+ATIPICOS_ELIMINAR = []             # elimina las FILAS de train con atípicos en estas variables
+ATIPICOS_CAPPING = None            # None = todas las demás numéricas | [] = ninguna | lista = solo esas
+                                   # las numéricas que no estén en ninguna lista quedan sin tratamiento
 GUARDAR_MODELOS_CHALLENGE = True   # guarda el modelo en cada run (permite registrarlo después)
 
 
@@ -29,6 +33,24 @@ def main(df: pd.DataFrame = None):
     # ---------------------------------------------------- 2. Split (antes de transformar)
     X_train, X_val, X_test, y_train, y_val, y_test = split_train_val_test(X, y, random_state=RANDOM_STATE)
     num_cols, cat_cols = tipos_variables(pd.concat([X_train, y_train], axis=1), TARGET)
+
+    # ---------------------------------------------------- 2b. Atípicos
+    # Eliminar: quita filas SOLO de train (val/test no se tocan: en producción no se borran clientes).
+    # Va antes de la selección y de los pesos, porque cambia X_train e y_train.
+    # Capping: se aplica dentro del Pipeline (límites de train, mismos en val/test/producción).
+    eliminar = [c for c in ATIPICOS_ELIMINAR if c in num_cols]
+    if ATIPICOS_CAPPING is None:
+        capping = [c for c in num_cols if c not in eliminar]
+    else:
+        capping = [c for c in ATIPICOS_CAPPING if c in num_cols]
+    repetidas = set(eliminar) & set(capping)
+    if repetidas:
+        raise ValueError(f"Variables en ELIMINAR y CAPPING a la vez: {sorted(repetidas)}")
+    sin_tratar = [c for c in num_cols if c not in eliminar and c not in capping]
+    print(f"Atípicos -> eliminar filas: {eliminar} | capping: {capping} | sin tratamiento: {sin_tratar}")
+    if eliminar:
+        X_train, y_train, resumen_elim = eliminar_atipicos_iqr(X_train, y_train, eliminar)
+        print(resumen_elim)
 
     # ---------------------------------------------------- 3. Selección de variables (solo train)
     train_df = pd.concat([X_train, y_train], axis=1)
@@ -66,7 +88,7 @@ def main(df: pd.DataFrame = None):
     resultados = {}
     for nombre, (feats, escalar) in config.items():
         nc, cc = split_cols(feats)
-        pipe = construir_pipeline(base[nombre], nc, cc, escalar=escalar)
+        pipe = construir_pipeline(base[nombre], nc, cc, escalar=escalar, capping=capping)
         r = entrenar_y_evaluar(nombre, pipe, data, w_train)
         r["features"] = feats
         p_val = r["pipeline"].predict_proba(X_val)[:, 1]
@@ -85,7 +107,7 @@ def main(df: pd.DataFrame = None):
     for nombre in tabla["modelo"].head(TUNEAR_TOP):
         feats, escalar = config[nombre]
         nc, cc = split_cols(feats)
-        pipe = construir_pipeline(base[nombre], nc, cc, escalar=escalar)
+        pipe = construir_pipeline(base[nombre], nc, cc, escalar=escalar, capping=capping)
         mejor_pipe, mejores_params, _ = tunear_modelo(pipe, espacios[nombre], X_train, y_train, w_train,
                                                       n_iter=N_ITER_TUNEO, random_state=RANDOM_STATE)
         r = entrenar_y_evaluar(f"{nombre}_tuned", mejor_pipe, data, w_train)

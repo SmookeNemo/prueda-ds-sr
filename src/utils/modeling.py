@@ -31,12 +31,17 @@ def split_train_val_test(X, y, val_size: float = 0.15, test_size: float = 0.15, 
 
 # ----------------------------------------------------------------- Preprocesamiento
 def construir_preprocesador(num_cols: list, cat_cols: list, escalar: bool = True,
-                            capping: bool = True, factor_iqr: float = 1.5) -> ColumnTransformer:
+                            capping=True, factor_iqr: float = 1.5) -> ColumnTransformer:
     """Numéricas: imputación mediana -> capping IQR -> escalado (opcional).
-    Categóricas: imputación moda -> One-Hot. Columnas no listadas se descartan."""
+    Categóricas: imputación moda -> One-Hot. Columnas no listadas se descartan.
+    capping: True = todas las numéricas | False/[] = ninguna | lista de nombres = solo esas."""
     pasos_num = [("imputar", SimpleImputer(strategy="median"))]
-    if capping:
+    if capping is True:
         pasos_num.append(("iqr", IQRCapper(factor=factor_iqr)))
+    elif capping:   # lista de variables
+        posiciones = [i for i, c in enumerate(num_cols) if c in set(capping)]
+        if posiciones:
+            pasos_num.append(("iqr", IQRCapper(factor=factor_iqr, columnas=posiciones)))
     if escalar:
         pasos_num.append(("escalar", StandardScaler()))
     pasos_cat = [("imputar", SimpleImputer(strategy="most_frequent")),
@@ -50,7 +55,7 @@ def construir_preprocesador(num_cols: list, cat_cols: list, escalar: bool = True
 
 
 def construir_pipeline(modelo, num_cols: list, cat_cols: list, escalar: bool = True,
-                       capping: bool = True) -> Pipeline:
+                       capping=True) -> Pipeline:
     """Pipeline = preprocesamiento + modelo. El paso del modelo se llama 'model'
     (por eso los pesos se pasan como model__sample_weight)."""
     return Pipeline([("prep", construir_preprocesador(num_cols, cat_cols, escalar, capping)),

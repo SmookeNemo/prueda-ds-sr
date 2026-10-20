@@ -2,7 +2,7 @@
 from .eda import (resumen_datos, distribucion_target, tipos_variables, detectar_columnas_problema,
                   graficar_numericas_vs_target, tasa_target_por_categoria, graficar_correlacion,
                   muestreo_estratificado)
-from .outliers import IQRCapper, resumen_atipicos
+from .outliers import IQRCapper, resumen_atipicos, eliminar_atipicos_iqr
 from .feature_selection import (calcular_iv, tabla_iv, filtrar_por_iv, filtrar_correlacion, calcular_vif,
                                 vif_iterativo, importancia_xgb, seleccionar_por_importancia)
 from .weights import calcular_pesos, pesos_por_clase, scale_pos_weight
